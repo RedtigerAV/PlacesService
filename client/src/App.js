@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
-import { Map, TileLayer, Marker, Popup } from 'react-leaflet';
+import { Map, TileLayer, Marker } from 'react-leaflet';
+import { Card, Button, CardTitle, CardText, Form, FormGroup, Label, Input } from 'reactstrap';
 import L from 'leaflet';
 import './App.css';
 
@@ -55,22 +56,65 @@ class App extends Component {
         })
     }
 
+    formSubmitted = (event) => {
+        event.preventDefault();
+        console.log(this.state);
+    };
+
+    valueChanged = (event) => {
+        const {name, value} = event.target;
+        this.setState((prevState) => ({
+            userMessage: {
+                ...prevState.userMessage,
+                [name]: value
+            }
+        }))
+    };
+
     render() {
         const position = [this.state.location.lat, this.state.location.lng]
         return (
-            <Map className="map" center={position} zoom={this.state.zoom}>
-                <TileLayer
-                    attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
-                {
-                    this.state.haveUsersLocation ?
-                        <Marker
-                            position={position}
-                            icon={myIcon}>
-                        </Marker> : ''
-                }
-            </Map>
+            <div className="map">
+                <Map className="map" center={position} zoom={this.state.zoom}>
+                    <TileLayer
+                        attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    />
+                    {
+                        this.state.haveUsersLocation ?
+                            <Marker
+                                position={position}
+                                icon={myIcon}>
+                            </Marker> : ''
+                    }
+                </Map>
+                <Card body className="message-form">
+                    <CardTitle>Welcome to Place Service!</CardTitle>
+                    <CardText>Leave a message with your location</CardText>
+                    <Form onSubmit={this.formSubmitted}>
+                        <FormGroup>
+                            <Label for="name">Name</Label>
+                            <Input type="text"
+                                   onChange={this.valueChanged}
+                                   name="name"
+                                   id="name"
+                                   placeholder="Enter your name" />
+                        </FormGroup>
+                        <FormGroup>
+                            <Label for="message">Message</Label>
+                            <Input type="textarea"
+                                   onChange={this.valueChanged}
+                                   name="message"
+                                   id="message"
+                                   placeholder="Enter a message" />
+                        </FormGroup>
+                        <Button type="submit"
+                                color="info"
+                                disabled={!this.state.haveUsersLocation}
+                        >Send message</Button>
+                    </Form>
+                </Card>
+            </div>
         );
     }
 }
