@@ -18,3 +18,8 @@ body {
     right: 10px;
     z-index: 999;
 }
+
+video {
+    width: 100%;
+    height: auto;
+}
