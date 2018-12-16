@@ -11,6 +11,7 @@ const schema = Joi.object().keys({
     message: Joi.string().min(1).max(500).required(),
     latitude: Joi.number().min(-90).max(90).required(),
     longitude: Joi.number().min(-180).max(180).required(),
+    details: Joi.object().required()
 });
 
 router.get('/', (req, res) => {
@@ -26,12 +27,13 @@ router.post('/', (req, res, next) => {
     if (result.error === null) {
         // add current time
         // insert into DB
-        const { name, message, latitude, longitude } = req.body;
+        const { name, message, latitude, longitude, details } = req.body;
         const userMessage = {
             name,
             message,
             latitude,
             longitude,
+            details,
             date: new Date()
         };
         messages

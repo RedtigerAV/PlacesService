@@ -5,13 +5,14 @@ import L from 'leaflet';
 import './App.css';
 import messageLocationUrl from './message_location.svg';
 import userLocationUrl from './user_location.svg';
+import {formatDate} from './formatDate';
 
-var myIcon = L.icon({
+const myIcon = L.icon({
     iconUrl: userLocationUrl,
     iconSize: [30, 50]
 });
 
-var messageIcon = L.icon({
+const messageIcon = L.icon({
     iconUrl: messageLocationUrl,
     iconSize: [30, 50],
     iconAnchor: [12.5, 41],
@@ -19,6 +20,7 @@ var messageIcon = L.icon({
 });
 
 const API_URL = window.location.hostname === 'localhost' ? 'http://localhost:5000/api/v1/messages' : 'production-url';
+const LOCATION_DETAILS_URL = 'http://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/reverseGeocode?f=pjson&featureTypes=&location=';
 
 class App extends Component {
     state = {
@@ -99,24 +101,30 @@ class App extends Component {
                 longitude: this.state.location.lng,
             };
 
-            fetch(API_URL, {
-                method: 'POST',
-                headers: {
-                    'content-type': 'application/json',
-                },
-                body: JSON.stringify({
-                    ...message
-                })
-            })
+            fetch(`${LOCATION_DETAILS_URL}${message.longitude},${message.latitude}`)
                 .then(res => res.json())
-                .then(message => {
-                    console.log(message);
-                    setTimeout(() => {
-                        this.setState({
-                            sendingMessage: false,
-                            sentMessage: true
+                .then(details => {
+                    message.details = details;
+
+                    fetch(API_URL, {
+                        method: 'POST',
+                        headers: {
+                            'content-type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            ...message
+                        })
+                    })
+                        .then(res => res.json())
+                        .then(message => {
+                            console.log(message);
+                            setTimeout(() => {
+                                this.setState({
+                                    sendingMessage: false,
+                                    sentMessage: true
+                                });
+                            }, 4000);
                         });
-                    }, 4000);
                 });
         }
     };
@@ -130,6 +138,8 @@ class App extends Component {
             }
         }))
     };
+
+    dateReturn = (date) => formatDate(new Date(date));
 
     render() {
         const position = [this.state.location.lat, this.state.location.lng]
@@ -155,6 +165,10 @@ class App extends Component {
                                 icon={messageIcon}>
                                 <Popup>
                                     <b><em>{message.name}:</em></b> {message.message}
+                                    <br/>
+                                    <b><em>Place:</em></b> {message.details.address.Match_addr}
+                                    <br/>
+                                    <b><em>Date:</em></b> {this.dateReturn(message.date)}
                                 </Popup>
                             </Marker>
                         ))
