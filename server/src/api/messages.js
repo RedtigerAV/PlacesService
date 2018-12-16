@@ -7,7 +7,7 @@ const messages = db.get('messages');
 const router = express.Router();
 
 const schema = Joi.object().keys({
-    name: Joi.string().alphanum().min(1).max(50).required(),
+    name: Joi.string().min(1).max(50).required(),
     message: Joi.string().min(1).max(500).required(),
     latitude: Joi.number().min(-90).max(90).required(),
     longitude: Joi.number().min(-180).max(180).required(),
