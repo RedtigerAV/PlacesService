@@ -11,6 +11,8 @@ var myIcon = L.icon({
     popupAnchor: [0, -41]
 });
 
+const API_URL = window.location.hostname === 'localhost' ? 'http://localhost:5000/api/v1/messages' : 'production-url';
+
 class App extends Component {
     state = {
         location: {
@@ -30,6 +32,7 @@ class App extends Component {
     };
 
     componentDidMount() {
+        console.log('ama here');
         navigator.geolocation.getCurrentPosition((position) => {
             this.setState({
                 location: {
@@ -56,9 +59,47 @@ class App extends Component {
         })
     }
 
+    formIsValid = () => {
+        let { name, message } = this.state.userMessage;
+        name = name.trim();
+        message = message.trim();
+
+        const validMessage =
+            name.length > 0 && name.length <= 500 &&
+            message.length > 0 && message.length <= 500;
+
+        return validMessage && this.state.haveUsersLocation ? true : false;
+    };
+
     formSubmitted = (event) => {
         event.preventDefault();
-        console.log(this.state);
+
+        if (this.formIsValid()) {
+            this.setState({
+                sendingMessage: true
+            });
+
+            const message = {
+                name: this.state.userMessage.name,
+                message: this.state.userMessage.message,
+                latitude: this.state.location.lat,
+                longitude: this.state.location.lng,
+            };
+
+            fetch(API_URL, {
+                method: 'POST',
+                headers: {
+                    'content-type': 'application/json',
+                },
+                body: JSON.stringify({
+                    ...message
+                })
+            })
+                .then(res => res.json())
+                .then(message => {
+                    console.log(message);
+                });
+        }
     };
 
     valueChanged = (event) => {
@@ -110,7 +151,7 @@ class App extends Component {
                         </FormGroup>
                         <Button type="submit"
                                 color="info"
-                                disabled={!this.state.haveUsersLocation}
+                                disabled={!this.formIsValid()}
                         >Send message</Button>
                     </Form>
                 </Card>
